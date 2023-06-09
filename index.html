@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keyword Checker</title>
+</head>
+<body>
+    <h1>Keyword Checker</h1>
+    <p>
+        This page will check for the keyword "autopaikka saunavuoro free vakio" in the response of a POST request.
+        If the keyword is found, it will send an email notification.
+    </p>
+
+    <?php
+    function send_email($subject, $body) {
+        // Email configurations
+        $sender_email = 'sender@example.com';
+        $receiver_email = 'receiver@example.com';
+
+        // Create the email headers
+        $headers = 'From: ' . $sender_email . "\r\n" .
+            'Reply-To: ' . $sender_email . "\r\n" .
+            'X-Mailer: PHP/' . phpversion();
+
+        // Send the email
+        mail($receiver_email, $subject, $body, $headers);
+    }
+
+    function check_response($url, $keyword) {
+        while (true) {
+            $response = file_get_contents($url, false, stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'header' => 'Content-Type: application/x-www-form-urlencoded',
+                    'content' => http_build_query($keyword)
+                ]
+            ]));
+
+            if (strpos($response, 'autopaikka saunavuoro free vakio') !== false) {
+                $subject = 'Keyword Found: autopaikka saunavuoro free vakio';
+                $body = 'The keyword "autopaikka saunavuoro free vakio" was found in the response from ' . $url;
+                send_email($subject, $body);
+                break;
+            } else {
+                sleep(60);
+            }
+        }
+    }
+
+    // Example usage
+    $post_url = 'https://haku.joensuunelli.fi/en/sauna/';
+    $post_data = [
+        'action' => 'show',
+        'sauna_required' => 'Choose+sauna%21',
+        'sauna' => '55',
+        'sendRequest' => 'Continue+%C2%BB'
+    ];
+
+    check_response($post_url, $post_data);
+    ?>
+
+    <p>
+        The PHP script is running in the background. It will check for the keyword and send an email notification if found.
+    </p>
+</body>
+</html>
